@@ -94,6 +94,9 @@ class Simulator {
         // events with the analytics instance
         sendFunction(analytics);
 
+        // We must fetch within the context of withClock because
+        // fetchAvailableSurveys checks the current date when parsing
+        // what a valid survey is
         final surveysFetched = await analytics.fetchAvailableSurveys();
         if (surveysFetched.isNotEmpty &&
             foundSurvey(surveyId, surveysFetched)) {
