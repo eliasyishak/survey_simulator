@@ -1,6 +1,5 @@
 // ignore_for_file: implementation_imports
 
-import 'package:file/file.dart';
 import 'package:file/memory.dart';
 import 'package:http/http.dart' as http;
 import 'package:unified_analytics/src/constants.dart';
@@ -14,11 +13,16 @@ Future<String> fetchContents() async {
   return response.body;
 }
 
-FakeAnalytics getInitializedFakeAnalytics({
-  required MemoryFileSystem fs,
-  required Directory homeDirectory,
-  required String surveyContent,
-}) {
+bool foundSurvey(String surveyId, List<Survey> surveysFetched) {
+  for (final survey in surveysFetched) {
+    if (survey.uniqueId == surveyId) return true;
+  }
+  return false;
+}
+
+FakeAnalytics getInitializedFakeAnalytics({required String surveyContent}) {
+  final fs = MemoryFileSystem.test();
+  final homeDirectory = fs.directory('/');
   final fakeSurveyHandler = FakeSurveyHandler.fromString(
     homeDirectory: homeDirectory,
     fs: fs,
