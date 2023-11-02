@@ -18,15 +18,14 @@ void run() async {
     label: 'Running on flutter beta channel',
     surveyId: 'd27d24da-f789-45e3-83af-7ebaeade75c1',
     simulationDateTime: DateTime.now(),
-    tool: DashTool.flutterTool,
+    tool: DashTool.dartTool,
     flutterChannel: 'beta',
     flutterVersion: 'flutterVersion',
     dartVersion: 'dartVersion',
     sendFunction: functionToRun,
-    iterations: 200,
+    iterations: 100,
     remoteContent: remoteContent,
   );
 
-  print(await simulator.run());
   print(await simulator.run());
 }

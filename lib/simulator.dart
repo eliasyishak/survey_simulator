@@ -10,6 +10,7 @@ class SimulationResult {
   final String surveyId;
   final int countOfSuccesses;
   final int iterations;
+  final Duration duration;
 
   /// Dataclass that contains the results from a simulation run.
   SimulationResult({
@@ -17,10 +18,12 @@ class SimulationResult {
     required this.surveyId,
     required this.countOfSuccesses,
     required this.iterations,
+    required this.duration,
   });
 
   @override
-  String toString() => 'Result for simulator: "$label"\n'
+  String toString() =>
+      '\nResult for simulator: "$label" (${duration.inMilliseconds}ms)\n'
       'Tested survey id: "$surveyId"\n'
       'Number of successes: $countOfSuccesses\n'
       'Total number of iterations (clients) per run: $iterations\n'
@@ -75,14 +78,20 @@ class Simulator {
 
   Future<SimulationResult> run() async {
     countOfSuccesses = 0;
+    final sw = Stopwatch()..start();
 
     for (var i = 0; i < iterations; i++) {
-      // print('[$label] ${i + 1} out of $iterations...');
-
       await withClock(Clock.fixed(simulationDateTime), () async {
-        final analytics =
-            getInitializedFakeAnalytics(surveyContent: remoteContent);
+        final analytics = getInitializedFakeAnalytics(
+          surveyContent: remoteContent,
+          tool: tool,
+          flutterChannel: flutterChannel,
+          flutterVersion: flutterVersion,
+          dartVersion: dartVersion,
+        );
 
+        // Invoke the function that has the user defined send
+        // events with the analytics instance
         sendFunction(analytics);
 
         final surveysFetched = await analytics.fetchAvailableSurveys();
@@ -92,12 +101,14 @@ class Simulator {
         }
       });
     }
+    sw.stop();
 
     return SimulationResult(
       label: label,
       surveyId: surveyId,
       countOfSuccesses: countOfSuccesses,
       iterations: iterations,
+      duration: sw.elapsed,
     );
   }
 }

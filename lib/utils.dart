@@ -20,7 +20,13 @@ bool foundSurvey(String surveyId, List<Survey> surveysFetched) {
   return false;
 }
 
-FakeAnalytics getInitializedFakeAnalytics({required String surveyContent}) {
+FakeAnalytics getInitializedFakeAnalytics({
+  required String surveyContent,
+  required DashTool tool,
+  required String flutterChannel,
+  required String flutterVersion,
+  required String dartVersion,
+}) {
   final fs = MemoryFileSystem.test();
   final homeDirectory = fs.directory('/');
   final fakeSurveyHandler = FakeSurveyHandler.fromString(
@@ -28,15 +34,16 @@ FakeAnalytics getInitializedFakeAnalytics({required String surveyContent}) {
     fs: fs,
     content: surveyContent,
   );
+  final devicePlatform = DevicePlatform.linux;
 
   // Necessary for the initialization logic
-  final Analytics initializationAnalytics = FakeAnalytics(
-    tool: DashTool.flutterTool,
+  final initializationAnalytics = FakeAnalytics(
+    tool: tool,
     homeDirectory: homeDirectory,
-    dartVersion: 'dartVersion',
-    platform: DevicePlatform.macos,
-    flutterChannel: 'beta',
-    flutterVersion: 'flutterVersion',
+    dartVersion: dartVersion,
+    platform: devicePlatform,
+    flutterChannel: flutterChannel,
+    flutterVersion: flutterVersion,
     fs: fs,
     surveyHandler: FakeSurveyHandler.fromList(
       homeDirectory: homeDirectory,
@@ -47,12 +54,12 @@ FakeAnalytics getInitializedFakeAnalytics({required String surveyContent}) {
   initializationAnalytics.clientShowedMessage();
 
   return FakeAnalytics(
-    tool: DashTool.flutterTool,
+    tool: tool,
     homeDirectory: homeDirectory,
-    dartVersion: 'dartVersion',
-    platform: DevicePlatform.macos,
-    flutterChannel: 'beta',
-    flutterVersion: 'flutterVersion',
+    dartVersion: dartVersion,
+    platform: devicePlatform,
+    flutterChannel: flutterChannel,
+    flutterVersion: flutterVersion,
     fs: fs,
     surveyHandler: fakeSurveyHandler,
   );
