@@ -1,9 +1,41 @@
 import 'package:clock/clock.dart';
+import 'package:file/memory.dart';
 import 'package:unified_analytics/unified_analytics.dart';
 
 import 'utils.dart';
 
 typedef SendFunction = void Function(FakeAnalytics analyticsInstance);
+
+class InstanceParameters {
+  final DashTool tool;
+  final String flutterChannel;
+  final String flutterVersion;
+  final String dartVersion;
+
+  /// The function that should run that will be sending the
+  /// events for each instance of the simulator.
+  ///
+  /// The example below shows an example that be passed:
+  /// ```dart
+  /// void functionToRun() {
+  ///   for (var i = 0; i < 50; i++) {
+  ///     analytics.send(Event.analyticsCollectionEnabled(status: false));
+  ///   }
+  /// }
+  /// ```
+  final SendFunction sendFunction;
+
+  /// The parameters to pass to the [FakeAnalytics] instance to supply
+  /// it with the required attributes such as what [flutterChannel] the
+  /// [sendFunction] should be sending from.
+  InstanceParameters({
+    required this.tool,
+    required this.flutterChannel,
+    required this.flutterVersion,
+    required this.dartVersion,
+    required this.sendFunction,
+  });
+}
 
 class SimulationResult {
   final String label;
@@ -34,10 +66,6 @@ class SimulationResult {
 class Simulator {
   final DateTime simulationDateTime;
   final String remoteContent;
-  final DashTool tool;
-  final String flutterChannel;
-  final String flutterVersion;
-  final String dartVersion;
   final int iterations;
   final String label;
 
@@ -50,54 +78,45 @@ class Simulator {
 
   int countOfSuccesses = 0;
 
-  /// The function that should run that will be sending the
-  /// events for each instance of the simulator.
-  ///
-  /// The example below shows an example that be passed:
-  /// ```dart
-  /// void functionToRun() {
-  ///   for (var i = 0; i < 50; i++) {
-  ///     analytics.send(Event.analyticsCollectionEnabled(status: false));
-  ///   }
-  /// }
-  /// ```
-  final SendFunction sendFunction;
+  final List<InstanceParameters> instanceParameters;
 
   Simulator({
     required this.label,
     required this.simulationDateTime,
-    required this.tool,
-    required this.flutterChannel,
-    required this.flutterVersion,
-    required this.dartVersion,
-    required this.sendFunction,
     required this.remoteContent,
     required this.iterations,
     required this.surveyId,
-  });
+    required this.instanceParameters,
+  }) : assert(instanceParameters.isNotEmpty);
 
   Future<SimulationResult> run() async {
     countOfSuccesses = 0;
     final sw = Stopwatch()..start();
 
     for (var i = 0; i < iterations; i++) {
-      await withClock(Clock.fixed(simulationDateTime), () async {
-        final analytics = getInitializedFakeAnalytics(
-          surveyContent: remoteContent,
-          tool: tool,
-          flutterChannel: flutterChannel,
-          flutterVersion: flutterVersion,
-          dartVersion: dartVersion,
-        );
+      final fs = MemoryFileSystem.test();
 
-        // Invoke the function that has the user defined send
-        // events with the analytics instance
-        sendFunction(analytics);
+      await withClock(Clock.fixed(simulationDateTime), () async {
+        FakeAnalytics? analytics;
+        for (final instanceParam in instanceParameters) {
+          analytics = getInitializedFakeAnalytics(
+            surveyContent: remoteContent,
+            tool: instanceParam.tool,
+            flutterChannel: instanceParam.flutterChannel,
+            flutterVersion: instanceParam.flutterVersion,
+            dartVersion: instanceParam.dartVersion,
+            fs: fs,
+          );
+
+          // Invoke the function that has the user defined send
+          // events with the analytics instance
+          instanceParam.sendFunction(analytics);
+        }
 
         // We must fetch within the context of withClock because
         // fetchAvailableSurveys checks the current date when parsing
         // what a valid survey is
-        final surveysFetched = await analytics.fetchAvailableSurveys();
+        final surveysFetched = await analytics!.fetchAvailableSurveys();
         if (surveysFetched.isNotEmpty &&
             foundSurvey(surveyId, surveysFetched)) {
           countOfSuccesses += 1;

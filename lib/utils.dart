@@ -26,8 +26,8 @@ FakeAnalytics getInitializedFakeAnalytics({
   required String flutterChannel,
   required String flutterVersion,
   required String dartVersion,
+  required MemoryFileSystem fs,
 }) {
-  final fs = MemoryFileSystem.test();
   final homeDirectory = fs.directory('/');
   final fakeSurveyHandler = FakeSurveyHandler.fromString(
     homeDirectory: homeDirectory,
