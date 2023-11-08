@@ -1,10 +1,14 @@
 import 'package:clock/clock.dart';
+import 'package:file/file.dart';
 import 'package:file/memory.dart';
 import 'package:unified_analytics/unified_analytics.dart';
 
 import 'utils.dart';
 
-typedef SendFunction = void Function(FakeAnalytics analyticsInstance);
+typedef SendFunction = void Function(
+  FakeAnalytics analyticsInstance,
+  File logFile,
+);
 
 class InstanceParameters {
   final DashTool tool;
@@ -95,6 +99,7 @@ class Simulator {
 
     for (var i = 0; i < iterations; i++) {
       final fs = MemoryFileSystem.test();
+      final logFile = fs.file('/.dart-tool/dart-flutter-telemetry.log');
 
       await withClock(Clock.fixed(simulationDateTime), () async {
         FakeAnalytics? analytics;
@@ -110,7 +115,7 @@ class Simulator {
 
           // Invoke the function that has the user defined send
           // events with the analytics instance
-          instanceParam.sendFunction(analytics);
+          instanceParam.sendFunction(analytics, logFile);
         }
 
         // We must fetch within the context of withClock because

@@ -1,7 +1,11 @@
+import 'package:file/file.dart';
 import 'package:survey_simulator/survey_simulator.dart';
 import 'package:unified_analytics/unified_analytics.dart';
 
-void functionToRun(FakeAnalytics analyticsInstance) {
+void functionToRun(
+  FakeAnalytics analyticsInstance,
+  File logFile,
+) {
   for (var i = 0; i < 50; i++) {
     analyticsInstance.send(Event.analyticsCollectionEnabled(status: false));
   }
