@@ -2,7 +2,6 @@ import 'package:clock/clock.dart';
 import 'package:file/file.dart';
 import 'package:file/memory.dart';
 import 'package:unified_analytics/unified_analytics.dart';
-
 import 'utils.dart';
 
 typedef SendFunction = void Function(
@@ -59,7 +58,7 @@ class SimulationResult {
 
   @override
   String toString() =>
-      '\nResult for simulator: "$label" (${duration.inMilliseconds}ms)\n'
+      '\n\nResult for simulator: "$label" (${duration.inMilliseconds}ms)\n'
       'Tested survey id: "$surveyId"\n'
       'Number of successes: $countOfSuccesses\n'
       'Total number of iterations (clients) per run: $iterations\n'
@@ -95,9 +94,11 @@ class Simulator {
 
   Future<SimulationResult> run() async {
     countOfSuccesses = 0;
+    final barLength = 100;
     final sw = Stopwatch()..start();
 
     for (var i = 0; i < iterations; i++) {
+      printProgressBar(i, iterations - 1, barLength);
       final fs = MemoryFileSystem.test();
       final logFile = fs.file('/.dart-tool/dart-flutter-telemetry.log');
 

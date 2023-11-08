@@ -1,5 +1,7 @@
 // ignore_for_file: implementation_imports
 
+import 'dart:io';
+
 import 'package:file/memory.dart';
 import 'package:http/http.dart' as http;
 import 'package:unified_analytics/src/constants.dart';
@@ -63,4 +65,16 @@ FakeAnalytics getInitializedFakeAnalytics({
     fs: fs,
     surveyHandler: fakeSurveyHandler,
   );
+}
+
+void printProgressBar(int current, int total, int barLength) {
+  final percentage = current / total;
+  final progressLength = (percentage * barLength).floor();
+  final remainingLength = barLength - progressLength;
+
+  stdout.write('[');
+  stdout.write('=' * progressLength);
+  stdout.write(' ' * remainingLength);
+  stdout.write('] ${(percentage * 100).toStringAsFixed(2)}%');
+  stdout.write('\r'); // Move the cursor back to the beginning of the line.
 }
